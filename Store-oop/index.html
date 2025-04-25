@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -10,4 +10,197 @@
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Store</title>
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+
+<body>
+  <h1>Employee Store</h1>
+
+  <!-- Add Employee -->
+  <h3>Add Employee</h3>
+  <label for="addId">ID:</label>
+  <input type="text" id="addId" placeholder="Employee ID" /><br>
+  <label for="addName">Name:</label>
+  <input type="text" id="addName" placeholder="Employee Name" /><br>
+  <label for="addSalary">Salary:</label>
+  <input type="number" id="addSalary" placeholder="Employee Salary" /><br>
+  <button id="addEmployeeBtn">Add Employee</button>
+
+  <!-- Find Employee by Property -->
+  <h3>Find Employee</h3>
+  <label for="findProp">Property:</label>
+  <select id="findProp">
+    <option value="id">ID</option>
+    <option value="name">Name</option>
+    <option value="salary">Salary</option>
+  </select>
+  <input type="text" id="findValue" placeholder="Enter value" />
+  <button id="findEmployeeBtn">Find Employee</button>
+
+  <!-- Remove Employee -->
+  <h3>Remove Employee</h3>
+  <label for="removeId">ID:</label>
+  <input type="text" id="removeId" placeholder="Employee ID" /><br>
+  <button id="removeEmployeeBtn">Remove Employee</button>
+
+  <!-- Get Employee by ID -->
+  <h3>Get Employee by ID</h3>
+  <label for="getById">ID:</label>
+  <input type="text" id="getById" placeholder="Employee ID" /><br>
+  <button id="getByIdBtn">Get Employee</button>
+
+  <!-- Display Results -->
+  <h3>Results:</h3>
+  <div id="result"></div>
+
+  <script type="module">
+    // Store class with necessary methods
+    class Store {
+      constructor() {
+        this.items = [];
+      }
+
+      add(item) {
+        const exists = this.items.some(i => i.id === item.id);
+        if (exists) {
+          throw new Error(`Item with id "${item.id}" already exists.`);
+        }
+        this.items.push(item);
+      }
+
+      getById(id) {
+        return this.items.find(item => item.id === id);
+      }
+
+      find(predicate) {
+        return this.items.filter(item => predicate.test(item));
+      }
+
+      remove(id) {
+        const index = this.items.findIndex(item => item.id === id);
+        if (index === -1) return undefined;
+        const [removed] = this.items.splice(index, 1);
+        return removed;
+      }
+    }
+
+    // Predicate class for property-based search
+    class PropertyPredicate {
+      constructor(property, value) {
+        this.property = property;
+        this.value = value;
+      }
+
+      test(item) {
+        return item[this.property] == this.value; // Compare property with value
+      }
+    }
+
+    // Employee class
+    class Employee {
+      constructor(id, name, salary) {
+        this.id = id;
+        this.name = name;
+        this.salary = salary;
+      }
+    }
+
+    // Create a store instance
+    const store = new Store();
+
+    // Sample data to test
+    store.add(new Employee("1", "Alice", 5000));
+    store.add(new Employee("2", "Bob", 7000));
+    store.add(new Employee("3", "Charlie", 3000));
+
+    // Function to update the result on the page
+    function updateResult(message) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = message;
+    }
+
+    // Add Employee functionality
+    document.getElementById('addEmployeeBtn').addEventListener('click', () => {
+      const id = document.getElementById('addId').value;
+      const name = document.getElementById('addName').value;
+      const salary = parseFloat(document.getElementById('addSalary').value);
+
+      const newEmployee = new Employee(id, name, salary);
+      store.add(newEmployee);
+
+      // Clear input fields after adding
+      document.getElementById('addId').value = '';
+      document.getElementById('addName').value = '';
+      document.getElementById('addSalary').value = '';
+
+      updateResult(`Employee added: ${name} (${id})`);
+    });
+
+    // Find Employee functionality (by any property)
+    document.getElementById('findEmployeeBtn').addEventListener('click', () => {
+      const prop = document.getElementById('findProp').value;
+      const value = document.getElementById('findValue').value;
+
+      let predicate;
+      if (prop === 'id') {
+        predicate = new PropertyPredicate('id', value);
+      } else if (prop === 'name') {
+        predicate = new PropertyPredicate('name', value);
+      } else if (prop === 'salary') {
+        predicate = new PropertyPredicate('salary', parseFloat(value));
+      }
+
+      const results = store.find(predicate);
+      if (results.length > 0) {
+        const resultText = results.map(e => `${e.name} (${e.id}): ${e.salary}`).join('<br>');
+        updateResult(`Found Employees:<br>${resultText}`);
+      } else {
+        updateResult("No employees found.");
+      }
+
+      // Clear input field after finding
+      document.getElementById('findValue').value = '';
+    });
+
+    // Remove Employee functionality
+    document.getElementById('removeEmployeeBtn').addEventListener('click', () => {
+      const id = document.getElementById('removeId').value;
+      const removedEmployee = store.remove(id);
+
+      if (removedEmployee) {
+        updateResult(`Employee removed: ${removedEmployee.name}`);
+      } else {
+        updateResult("Employee not found for removal.");
+      }
+
+      // Clear input field after removal
+      document.getElementById('removeId').value = '';
+    });
+
+    // Get Employee by ID functionality
+    document.getElementById('getByIdBtn').addEventListener('click', () => {
+      const id = document.getElementById('getById').value;
+      const employee = store.getById(id);
+
+      if (employee) {
+        updateResult(`Employee found: ${employee.name}, Salary: ${employee.salary}`);
+      } else {
+        updateResult("Employee not found.");
+      }
+
+      // Clear input field after getting
+      document.getElementById('getById').value = '';
+    });
+  </script>
+</body>
+
 </html>
